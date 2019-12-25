@@ -8,19 +8,19 @@ if __name__ == '__main__':
         CREATE TABLE quetion (
         id INT auto_increment PRIMARY KEY ,
         title VARCHAR(500) NOT NULL UNIQUE,
-        answers VARCHAR(500)
+        answers VARCHAR(5000)
         )ENGINE=innodb DEFAULT CHARSET=utf8;
     """
     # 执行SQL语句
     cursor.execute(sql)
-    sql1 = """
-        CREATE TABLE selection (
-        id INT auto_increment PRIMARY KEY,
-        quetionId INT,
-        selection CHAR(500)
-        )ENGINE=innodb DEFAULT CHARSET=utf8;
-    """
-    cursor.execute(sql1)
+    # sql1 = """
+    #     CREATE TABLE selection (
+    #     id INT auto_increment PRIMARY KEY,
+    #     quetionId INT,
+    #     selection VARCHAR(500)
+    #     )ENGINE=innodb DEFAULT CHARSET=utf8;
+    # """
+    # cursor.execute(sql1)
     # 关闭光标对象
     cursor.close()
     # 关闭数据库连接
