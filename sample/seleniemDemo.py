@@ -16,10 +16,7 @@ def screenshot(driver, appname, name, pic):
     dirPath = os.path.split(os.path.realpath(__file__))[0] + "/" + appname
     if not os.path.exists(dirPath):
         os.mkdir(dirPath)
-    dirPath = dirPath + "/" + name
-    if not os.path.exists(dirPath):
-        os.mkdir(dirPath)
-    PIC_SRC = os.path.join(dirPath, pic + '.png')
+    PIC_SRC = os.path.join(dirPath, name + '_' + pic + '.png')
     logging.info('PIC_SRC ---> ' + PIC_SRC)
     driver.save_screenshot(PIC_SRC)
 
@@ -52,7 +49,7 @@ def isElementExistByXpath(driver, xpath):
         return flag
 
 
-def yinyangWeb(list, enname, name, age, sex, edu, metier):
+def yinyangWeb(list, name, age, sex, edu, metier):
     driver = webdriver.Chrome(executable_path="../driver/chromedriver.exe")
     driver.get("http://jscdc.cn/KABPWeb2011/paperTest1/createPagerForSafety.action")
     # http://npm.taobao.org/mirrors/chromedriver/78.0.3904.105/
@@ -118,10 +115,10 @@ def yinyangWeb(list, enname, name, age, sex, edu, metier):
     time.sleep(1)
     alert.accept()  # 确认
     time.sleep(1)
-    screenshot(driver, "yinyang", enname, "pic")
+    screenshot(driver, "yinyang", name, "pic")
     # 查看成绩
     driver.find_element_by_id("BtnOk").click()
-    screenshot(driver, "yinyang", enname, "pic-chengji")
+    screenshot(driver, "yinyang", name, "pic-chengji")
     questionlist = driver.find_elements_by_tag_name("table");
     for question in questionlist:
         try:
@@ -151,10 +148,10 @@ def yinyangWeb(list, enname, name, age, sex, edu, metier):
 
 
 if __name__ == '__main__':
-    conn = pymysql.connect(host="127.0.0.1", user="root", password="jiangying", database="test", charset="utf8")
+    conn = pymysql.connect(host="xxxxxx", user="xxxxx", password="xxxx", database="questionnaire", charset="utf8")
     # 获取游标
     cur = conn.cursor()
-    selectSql = "select title, answers from quetion"
+    selectSql = "select title, answers from health"
     cur.execute(selectSql)
     results = cur.fetchall()
     list = []
@@ -166,15 +163,15 @@ if __name__ == '__main__':
         list.append(dic)
     print "-----------------------------------------------------------"
     threads = []
-    t1 = threading.Thread(target=yinyangWeb, args=(list, "jiangyin", u'蒋英', "35～40岁以下", "男", "小学", "工人"))
+    t1 = threading.Thread(target=yinyangWeb, args=(list, u'蒋英', "35～40岁以下", "男", "小学", "工人"))
     threads.append(t1)
-    t2 = threading.Thread(target=yinyangWeb, args=(list, "zhaowu", u'赵武', "35～40岁以下", "男", "小学", "工人"))
+    t2 = threading.Thread(target=yinyangWeb, args=(list, u'赵武', "35～40岁以下", "男", "小学", "工人"))
     threads.append(t2)
-    t3 = threading.Thread(target=yinyangWeb, args=(list, "wangliu", u'王柳', "35～40岁以下", "男", "小学", "工人"))
+    t3 = threading.Thread(target=yinyangWeb, args=(list, u'王柳', "35～40岁以下", "男", "小学", "工人"))
     threads.append(t3)
-    t4 = threading.Thread(target=yinyangWeb, args=(list, "zhansan", u'詹三', "35～40岁以下", "男", "小学", "工人"))
+    t4 = threading.Thread(target=yinyangWeb, args=(list, u'詹三', "35～40岁以下", "男", "小学", "工人"))
     threads.append(t4)
-    t5 = threading.Thread(target=yinyangWeb, args=(list, "zhutian", u'朱天', "35～40岁以下", "男", "小学", "工人"))
+    t5 = threading.Thread(target=yinyangWeb, args=(list, u'朱天', "35～40岁以下", "男", "小学", "工人"))
     threads.append(t5)
     # 启动线程
     for t in threads:
@@ -185,8 +182,6 @@ if __name__ == '__main__':
 
     # sql语句
     sql = "insert into quetion (title, answers) values (%s,%s)"
-
-    yinyangWeb(list, "jiangyin", u'蒋英', "35～40岁以下", "男", "小学", "工人")
 
     for question in quetions:
         result = json.dumps(question).decode('unicode-escape')
