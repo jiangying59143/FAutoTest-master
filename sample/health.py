@@ -9,6 +9,7 @@ from selenium.webdriver.support.select import Select
 import os
 import logging
 import sys
+import random
 
 reload(sys)
 
@@ -33,7 +34,7 @@ def screenshot(driver, appname, name, pic):
     driver.get_screenshot_as_file(PIC_SRC)
 
 
-def screenshot_long(driver, app_name, name, pic):
+def screenshot_long(driver, app_name, name, pic, i):
     driver.maximize_window()
     js_height = "return document.body.clientHeight"
     height = driver.execute_script(js_height)
@@ -50,10 +51,10 @@ def screenshot_long(driver, app_name, name, pic):
     scroll_width = driver.execute_script('return document.body.parentNode.scrollWidth')
     scroll_height = driver.execute_script('return document.body.parentNode.scrollHeight')
     driver.set_window_size(scroll_width, scroll_height)
-    dir_path = os.path.split(os.path.realpath(__file__))[0] + "/" + app_name
+    dir_path = os.path.split(os.path.realpath(__file__))[0] + "/" + app_name + "/" + name;
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
-    pic_src = os.path.join(dir_path, name + '_' + pic + '.png')
+    pic_src = os.path.join(dir_path, str(i) + '_' + pic + '.png')
     driver.get_screenshot_as_file(pic_src)
 
 
@@ -100,21 +101,21 @@ def getTitleAndAnswers(driver, index, isScore):
         try:
             if isScore:
                 title_and_answers[this_title_and_answers[i].split(u"、", 1)[0]] = \
-                this_title_and_answers[i].split(u"、", 1)[1]
+                    this_title_and_answers[i].split(u"、", 1)[1]
             else:
                 title_and_answers[this_title_and_answers[i].split(u"、", 1)[1]] = \
-                this_title_and_answers[i].split(u"、", 1)[0]
+                    this_title_and_answers[i].split(u"、", 1)[0]
         except Exception, ex:
             # print this_title_html
             if this_title_and_answers[i] != "" and u"、" in this_title_and_answers[i]:
                 title_and_answers[this_title_and_answers[i].split(u"、", 1)[0]] = \
-                this_title_and_answers[i].split(u"、", 1)[0]
+                    this_title_and_answers[i].split(u"、", 1)[0]
     # logger.debug(title_and_answers)
     # logger.debug("\n-----------------")
     return title_and_answers
 
 
-def yinyangWeb(list, name, age, sex, edu, metier, orgName):
+def yinyangWeb(list, name, age, sex, edu, metier, orgName, tindex):
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
@@ -122,6 +123,7 @@ def yinyangWeb(list, name, age, sex, edu, metier, orgName):
     # driver = webdriver.Chrome(executable_path="../driver/chromedriver.exe")
     driver.get("http://www.jscdc.cn/KABP2011/business/index1.jsp")
     # http://npm.taobao.org/mirrors/chromedriver/78.0.3904.105/
+    time.sleep(1)
     city = Select(driver.find_element_by_id("zone3"))
     city.select_by_visible_text("宿迁市")
     zone = Select(driver.find_element_by_id("zone4"))
@@ -185,7 +187,7 @@ def yinyangWeb(list, name, age, sex, edu, metier, orgName):
     time.sleep(1)
     confirm.accept()  # 接受
     time.sleep(1)
-    screenshot_long(driver, "healthComputer", name, "pic")
+    screenshot_long(driver, "healthComputer", name, "pic", tindex)
 
     correctCount = 0;
     for i in range(1, totalQuestionCount + 1):
@@ -208,12 +210,13 @@ def yinyangWeb(list, name, age, sex, edu, metier, orgName):
                 cse.append(this_title_and_answers[c])
         healthQuestion.update(title=title, answers=answers, selections=cse)
         quetions.append(healthQuestion)
-    print name + "->总题数:" + str(totalQuestionCount) + " 答对题数：" + str(correctCount) + " 分数:" + driver.find_element_by_id(
+    print str(tindex) + " " + name + "->总题数:" + str(totalQuestionCount) + " 答对题数：" + str(correctCount) + " 分数:" + driver.find_element_by_id(
         "df_fs").text
+    driver.close()
 
 
-def run():
-    conn = pymysql.connect(host="xxx", user="xxxx", password="xxxx", database="questionnaire",
+def run(name):
+    conn = pymysql.connect(host="xxxx", user="xxx", password="xxx", database="questionnaire",
                            charset="utf8")
     # 获取游标
     cur = conn.cursor()
@@ -230,34 +233,22 @@ def run():
 
     # yinyangWeb(list, u'蒋英', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村")
 
+    age = random.choice(['20～25岁以下', '25～30岁以下', '30～35岁以下', '35～40岁以下', '40～45岁以下'])
+    sex = random.choice(['男', '女'])
+    education = random.choice(['小学', '初中', '高中/职高/中专', '大专/本科'])
+    job = random.choice(['教师', '饮食服务', '商业服务', '医务人员', '公司管理'])
+
     threads = []
-    t1 = threading.Thread(target=yinyangWeb, args=(list, u'蒋英', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    threads.append(t1)
-    t2 = threading.Thread(target=yinyangWeb, args=(list, u'赵武', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    threads.append(t2)
-    t3 = threading.Thread(target=yinyangWeb, args=(list, u'王柳', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    threads.append(t3)
-    t4 = threading.Thread(target=yinyangWeb, args=(list, u'詹三', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    threads.append(t4)
-    t5 = threading.Thread(target=yinyangWeb, args=(list, u'朱天', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    threads.append(t5)
-    # t6 = threading.Thread(target=yinyangWeb, args=(list, u'朱天1', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    # threads.append(t6)
-    # t7 = threading.Thread(target=yinyangWeb, args=(list, u'朱天2', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    # threads.append(t7)
-    # t8 = threading.Thread(target=yinyangWeb, args=(list, u'朱天3', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    # threads.append(t8)
-    # t9 = threading.Thread(target=yinyangWeb, args=(list, u'朱天4', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    # threads.append(t9)
-    # t10 = threading.Thread(target=yinyangWeb, args=(list, u'朱天5', "35～40岁以下", "男", "小学", "工人", u"东小店乡谢圩村"))
-    # threads.append(t10)
+    for i in range(1, 11):
+        t1 = threading.Thread(target=yinyangWebTry, args=(list, name, age, sex, education, job, u"东小店乡谢圩村", i))
+        threads.append(t1)
+
     # 启动线程
     for t in threads:
         t.start()
     # 守护线程
     for t in threads:
         t.join()
-
 
     # sql语句
     sql = "insert into health (title, answers) values (%s,%s)"
@@ -284,9 +275,29 @@ def run():
     return True
 
 
+def yinyangWebTry(list, name, age, sex, edu, metier, orgName, i):
+    flag = False
+    while flag is False:
+        try:
+            yinyangWeb(list, name, age, sex, edu, metier, orgName, i)
+            flag = True
+        except Exception, ex:
+            flag = False
+            logger.error(ex)
+
+
 if __name__ == '__main__':
-    for i in range(1, 101):
-        finished = run()
+    fo = open('C:/Users/yjiang/Desktop/names.txt', 'r')
+    names = []
+    while True:
+        line = fo.readline().replace('\n', '').decode("utf-8")
+        if not line:
+            break
+        else:
+            names.append(line)
+    fo.close()
+    for name in names:
+        finished = run(name)
         while not finished:
             time.sleep(1)
-        print "-------------------第" + str(i) + "遍完成--------------"
+        print "-------------------" + name + "遍完成--------------"
